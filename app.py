@@ -41,5 +41,10 @@ def dead_letter():
     messages = service.get_dead_letter()
     return jsonify([msg.to_dict() for msg in messages]), 200
 
+@app.route("/debug/show_all", methods=['GET'])
+def debug_show_all():
+    all_messages = service.get_all_messages()
+    return jsonify([msg.to_dict() for msg in all_messages]), 200
+
 if __name__ == '__main__':
     app.run(debug=True)

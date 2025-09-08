@@ -1,5 +1,6 @@
 from message_storage import MessageStorage
 from models import Message
+from persistence_service import PersistenceService
 from uuid import uuid4, UUID
 import time
 
@@ -11,6 +12,11 @@ class MessageService:
 
     def __init__(self):
         self.storage = MessageStorage()
+        self.persistence_service = PersistenceService(is_async=True)
+        # Load unacknowledged messages from persistence
+        unacknowledged_messages = self.persistence_service.get_unacknowledged_messages()
+        for msg in unacknowledged_messages:
+            self.storage.enqueue(msg)
         self.requeue_thread = threading.Thread(target=self._requeue_worker, daemon=True)
         self.requeue_thread.start()
         
@@ -24,16 +30,24 @@ class MessageService:
     def produce(self, data: object) -> UUID:
         message = Message(id=uuid4(), data=data, enqueued_at=time.time())
         self.storage.enqueue(message)
+        self.persistence_service.log_message(message)
         return message.id
     
     def consume(self):
-        return self.storage.dequeue()
-    
+        message = self.storage.dequeue()
+        self.persistence_service.update_message(message)
+
+        return message
+
     def acknowledge(self, message_id: UUID) -> bool:
+        self.persistence_service.ack_message(str(message_id))
         return self.storage.acknowledge(message_id)
     
     def get_dead_letter(self):
         return self.storage.dead_letter
+    
+    def get_all_messages(self):
+        return self.storage.get_all_messages()
 
     def _bg_requeue_inflight(self, timeout: int = REQUEUE_TIMEOUT):
         current_time = time.time()

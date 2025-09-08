@@ -42,5 +42,9 @@ class MessageStorage:
             return True
         return False
 
+    def get_all_messages(self):
+        all_messages = list(self.queue) + list(self.in_flight.values())
+        return all_messages
+
     def add_to_dead_letter(self, message: Message):
         self.dead_letter.append(message)
