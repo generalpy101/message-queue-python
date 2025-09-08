@@ -8,6 +8,7 @@ class MessageStorage:
     def __init__(self):
         self.queue: Deque[Message] = deque()
         self.in_flight: Dict[UUID, InflightMessage] = {}
+        self.dead_letter: Deque[Message] = deque()
         
     def enqueue(self, item: Message):
         self.queue.append(item)
@@ -35,8 +36,11 @@ class MessageStorage:
     def requeue_from_inflight(self, message_id: UUID) -> bool:
         if message_id in self.in_flight:
             inflight = self.in_flight.pop(message_id)
+            inflight.message.retries += 1
             inflight.message.state = MessageState.RETRIED
             self.enqueue(inflight.message)
             return True
         return False
-        
+
+    def add_to_dead_letter(self, message: Message):
+        self.dead_letter.append(message)

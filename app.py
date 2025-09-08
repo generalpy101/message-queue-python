@@ -36,5 +36,10 @@ def acknowledge():
         return jsonify({"error": "Message ID not found or not in-flight"}), 404
     return jsonify({"status": "acknowledged"}), 200
 
+@app.route('/dead_letter', methods=['GET'])
+def dead_letter():
+    messages = service.get_dead_letter()
+    return jsonify([msg.to_dict() for msg in messages]), 200
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -28,3 +28,6 @@ class Message:
 class InflightMessage:
     message: Message
     processing_started_at: float
+
+    def too_many_retries(self, threshold: int) -> bool:
+        return self.message.retries >= threshold
