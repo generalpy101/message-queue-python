@@ -1,5 +1,5 @@
 import sqlite3
-from models import Message, MessageState
+from broker.models import Message, MessageState
 import threading
 
 MESSAGE_SCHEMA = (

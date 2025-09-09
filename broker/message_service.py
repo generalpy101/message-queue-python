@@ -1,6 +1,6 @@
-from message_storage import MessageStorage
-from models import Message
-from persistence_service import PersistenceService
+from broker.message_storage import MessageStorage
+from broker.models import Message
+from broker.persistence_service import PersistenceService
 from uuid import uuid4, UUID
 import time
 
@@ -29,6 +29,7 @@ class MessageService:
     
     def produce(self, data: object) -> UUID:
         message = Message(id=uuid4(), data=data, enqueued_at=time.time())
+        print("Message: ", message.to_dict())
         self.storage.enqueue(message)
         self.persistence_service.log_message(message)
         return message.id
