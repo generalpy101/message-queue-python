@@ -1,6 +1,6 @@
-from message_storage import MessageStorage
-from models import Message
-from persistence_service import PersistenceService
+from broker.message_storage import MessageStorage
+from broker.models import Message
+from broker.persistence_service import PersistenceService
 from uuid import uuid4, UUID
 import time
 

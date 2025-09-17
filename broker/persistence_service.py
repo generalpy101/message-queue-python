@@ -1,13 +1,14 @@
 import sqlite3
-from models import Message, MessageState
+from broker.models import Message, MessageState
 import threading
 
 MESSAGE_SCHEMA = (
     "CREATE TABLE IF NOT EXISTS messages ("
     "id TEXT PRIMARY KEY,"
     "data TEXT NOT NULL,"
-    "state TEXT NOT NULL,"
-    "enqueued_at REAL NOT NULL"
+    "state INTEGER NOT NULL DEFAULT 0,"  # 0=ENQUEUED, 1=PROCESSING, 2=INFLIGHT, 3=ACKNOWLEDGED, 4=RETRIED
+    "enqueued_at REAL NOT NULL,"
+    "retries INTEGER DEFAULT 0"
     ")"
 )
 
@@ -58,16 +59,16 @@ class PersistenceService:
             with self.conn:
                 self.conn.execute(
                     "UPDATE messages SET data = ?, state = ? WHERE id = ?",
-                    (message.data, message.state.value, message.id)
+                    (message.data, message.state, message.id)
                 )
 
     def _log_message(self, message: Message):
         with self.lock:
             with self.conn:
-                print(message.id, message.data, message.state.value, message.enqueued_at)
+                print(message.id, message.data, message.state, message.enqueued_at)
                 self.conn.execute(
                     "INSERT INTO messages (id, data, state, enqueued_at) VALUES (?, ?, ?, ?)",
-                    (str(message.id), message.data, message.state.value, message.enqueued_at)
+                    (str(message.id), message.data, message.state, message.enqueued_at)
                 )
 
     def _ack_message(self, message_id: str):

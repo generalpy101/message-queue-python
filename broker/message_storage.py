@@ -1,4 +1,4 @@
-from models import Message, MessageState, InflightMessage
+from broker.models import Message, MessageState, InflightMessage
 from collections import deque
 from typing import Deque, Dict
 from uuid import UUID
