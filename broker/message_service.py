@@ -29,7 +29,6 @@ class MessageService:
     
     def produce(self, data: object) -> UUID:
         message = Message(id=uuid4(), data=data, enqueued_at=time.time())
-        print("Message: ", message.to_dict())
         self.storage.enqueue(message)
         self.persistence_service.log_message(message)
         return message.id

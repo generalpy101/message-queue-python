@@ -3,11 +3,19 @@ from uuid import UUID
 from enum import Enum
 
 class MessageState(Enum):
-    ENQUEUED = "enqueued"
-    PROCESSING = "processing"
-    INFLIGHT = "inflight"
-    ACKNOWLEDGED = "acknowledged"
-    RETRIED = "retried"
+    ENQUEUED = 0      # Message is in queue, not yet processed
+    PROCESSING = 1    # Message is currently being processed
+    INFLIGHT = 2      # Message has been sent to a consumer but not yet acknowledged
+    ACKNOWLEDGED = 3  # Message has been successfully processed
+    RETRIED = 4       # Message has been retried after a failure
+    
+    @classmethod
+    def get_name(cls, value):
+        """Get human-readable name for an enum value (for debugging/logging)"""
+        for state in cls:
+            if state.value == value:
+                return state.name
+        return f"UNKNOWN({value})"
 
 @dataclass
 class Message:
@@ -15,7 +23,7 @@ class Message:
     data: object
     enqueued_at: float = None
     retries: int = 0
-    state: MessageState = MessageState.ENQUEUED
+    state: MessageState = MessageState.ENQUEUED.value
     
     def to_dict(self):
         return {

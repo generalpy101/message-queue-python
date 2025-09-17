@@ -9,13 +9,14 @@ from broker.models import MessageState
 
 def message_to_proto(msg, topic="default", visibility_timeout=30):
     """Helper to convert internal Message → BrokerMessage (proto)."""
+    print(f"Converting message to proto: {msg}")
     return broker_pb2.BrokerMessage(
         message_id=str(msg.id),
         topic=topic,
         data=str(msg.data),
         enqueued_at=msg.enqueued_at or 0.0,
         retries=msg.retries,
-        state=broker_pb2.MessageState.Value(msg.state.name),
+        state=int(msg.state),
         visibility_timeout=visibility_timeout,
     )
 

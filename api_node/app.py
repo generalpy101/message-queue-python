@@ -80,8 +80,8 @@ def debug_show_all():
     messages = [{
         "message_id": m.message_id,
         "topic": m.topic,
-        "payload": m.payload,
-        "timestamp": m.timestamp
+        "payload": m.data,
+        "enqueued_at": m.enqueued_at
     } for m in resp.messages]
     return jsonify(messages), 200
 
