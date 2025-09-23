@@ -15,11 +15,12 @@ stub = broker_pb2_grpc.BrokerStub(channel)
 @app.route("/produce", methods=["POST"])
 def produce():
     data = request.json.get("data")
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
+    topic = request.json.get("topic")
+    if not data or not topic:
+        return jsonify({"error": "No data or topic provided"}), 400
 
     resp = stub.Publish(broker_pb2.PublishRequest(
-        topic="default",   # TODO: add real topics later
+        topic=topic,
         payload=data
     ))
     return jsonify({"message_id": resp.message_id}), 200
@@ -27,21 +28,25 @@ def produce():
 
 @app.route("/consume", methods=["GET"])
 def consume():
-    # For now, just pull one message off the stream
-    def node_messages():
-        yield broker_pb2.NodeMessage(
-            heartbeat=broker_pb2.Heartbeat(timestamp=0)
-        )
+    '''
+    Consumes `count` number of messages from a `topic`.
+    Default `count` is 1.
+    '''
+    topic = request.args.get("topic", "default")
+    count = request.args.get("count", 1, type=int)
 
-    response_iter = stub.MessageStream(node_messages())
     try:
-        msg = next(response_iter)   # Get first message
-        return jsonify({
-            "message_id": msg.message_id,
-            "topic": msg.topic,
-            "payload": msg.payload,
-            "timestamp": msg.timestamp
-        }), 200
+        response_iter = stub.MessageStream(broker_pb2.MessageStreamRequest(
+            topic=topic,
+            count=count
+        ))
+        for msg in response_iter:
+            yield {
+                "message_id": msg.message_id,
+                "topic": msg.topic,
+                "payload": msg.payload,
+                "timestamp": msg.timestamp
+            }
     except StopIteration:
         return jsonify({"message": None}), 200
 

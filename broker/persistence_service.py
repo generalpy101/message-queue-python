@@ -6,6 +6,7 @@ MESSAGE_SCHEMA = (
     "CREATE TABLE IF NOT EXISTS messages ("
     "id TEXT PRIMARY KEY,"
     "data TEXT NOT NULL,"
+    "topic TEXT NOT NULL DEFAULT 'default',"
     "state INTEGER NOT NULL DEFAULT 0,"  # 0=ENQUEUED, 1=PROCESSING, 2=INFLIGHT, 3=ACKNOWLEDGED, 4=RETRIED
     "enqueued_at REAL NOT NULL,"
     "retries INTEGER DEFAULT 0"
@@ -65,10 +66,10 @@ class PersistenceService:
     def _log_message(self, message: Message):
         with self.lock:
             with self.conn:
-                print(message.id, message.data, message.state, message.enqueued_at)
+                print(message.id, message.data, message.state, message.topic, message.enqueued_at)
                 self.conn.execute(
-                    "INSERT INTO messages (id, data, state, enqueued_at) VALUES (?, ?, ?, ?)",
-                    (str(message.id), message.data, message.state, message.enqueued_at)
+                    "INSERT INTO messages (id, data, state, topic, enqueued_at) VALUES (?, ?, ?, ?, ?)",
+                    (str(message.id), message.data, message.state, message.topic, message.enqueued_at)
                 )
 
     def _ack_message(self, message_id: str):

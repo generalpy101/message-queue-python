@@ -21,6 +21,7 @@ class MessageState(Enum):
 class Message:
     id: UUID
     data: object
+    topic: str = "default"
     enqueued_at: float = None
     retries: int = 0
     state: MessageState = MessageState.ENQUEUED.value
@@ -29,6 +30,7 @@ class Message:
         return {
             "id": str(self.id),
             "data": self.data,
+            "topic": self.topic,
             "enqueued_at": self.enqueued_at
         }
     

@@ -27,6 +27,7 @@ class BrokerServicer(broker_pb2_grpc.BrokerServicer):
 
     # ---- Producer API ----
     def Publish(self, request, context):
+        print(f"Publishing message to topic '{request.topic}': {request.payload}")
         msg_id = self.message_service.produce(request.payload)
         return broker_pb2.PublishResponse(message_id=str(msg_id))
 

@@ -27,8 +27,8 @@ class MessageService:
             self._bg_cleanup_inflight()
             time.sleep(5)
     
-    def produce(self, data: object) -> UUID:
-        message = Message(id=uuid4(), data=data, enqueued_at=time.time())
+    def produce(self, data: object, topic: str) -> UUID:
+        message = Message(id=uuid4(), data=data, topic=topic, enqueued_at=time.time())
         self.storage.enqueue(message)
         self.persistence_service.log_message(message)
         return message.id
